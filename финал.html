@@ -1116,14 +1116,15 @@
         }
 
         /* ---------- Towers ---------- */
+        // range теперь задаётся в клетках (дробное число)
         const TOWERS = {
-            arrow: { name: 'Лучник', cost: 60, color: '#7fe3ff', dmg: 14, range: 110, rate: 520, bullet: '#bff0ff',
+            arrow: { name: 'Лучник', cost: 60, color: '#7fe3ff', dmg: 14, range: 2.5, rate: 520, bullet: '#bff0ff',
                 bColor: '#3aa0d8' },
-            cannon: { name: 'Пушка', cost: 110, color: '#ffb36b', dmg: 42, range: 95, rate: 1100, splash: 38,
+            cannon: { name: 'Пушка', cost: 110, color: '#ffb36b', dmg: 42, range: 2.2, rate: 1100, splash: 38,
                 bullet: '#ffd9a8', bColor: '#d68433' },
-            frost: { name: 'Мороз', cost: 90, color: '#a9d9ff', dmg: 9, range: 100, rate: 700, slow: .5, slowTime: 1400,
+            frost: { name: 'Мороз', cost: 90, color: '#a9d9ff', dmg: 9, range: 2.3, rate: 700, slow: .5, slowTime: 1400,
                 bullet: '#dff2ff', bColor: '#6fb6e6' },
-            tesla: { name: 'Молния', cost: 150, color: '#d9a9ff', dmg: 26, range: 120, rate: 640, chain: 3,
+            tesla: { name: 'Молния', cost: 150, color: '#d9a9ff', dmg: 26, range: 2.8, rate: 640, chain: 3,
                 bullet: '#f0d9ff', bColor: '#a06fe6' },
         };
         const TOWER_ORDER = ['arrow', 'cannon', 'frost', 'tesla'];
@@ -1333,7 +1334,10 @@
             refreshHud();
         }
 
-        function towerRange(t) { return t.def.range * (1 + (t.lvl - 1) * 0.12) * metaMult('range'); }
+        // ★★★ Дальность теперь в пикселях = range_в_клетках * TILE ★★★
+        function towerRange(t) {
+            return t.def.range * TILE * (1 + (t.lvl - 1) * 0.12) * metaMult('range');
+        }
 
         function towerDmg(t) { return t.def.dmg * (1 + (t.lvl - 1) * 0.35) * metaMult('dmg'); }
 
@@ -1518,11 +1522,12 @@
                 const def = TOWERS[B.selTower],
                     x = B.hover.c * TILE + TILE / 2,
                     y = B.hover.r * TILE + TILE / 2;
+                const range = def.range * TILE * metaMult('range'); // без учёта уровня, пока не построена
                 const occupied = B.towers.some(t => t.c === B.hover.c && t.r === B.hover.r);
                 ctx.globalAlpha = .2;
                 ctx.fillStyle = occupied ? '#ff5c7a' : def.color;
                 ctx.beginPath();
-                ctx.arc(x, y, def.range * metaMult('range'), 0, 7);
+                ctx.arc(x, y, range, 0, 7);
                 ctx.fill();
                 ctx.globalAlpha = .5;
                 ctx.fillRect(B.hover.c * TILE + 4, B.hover.r * TILE + 4, TILE - 8, TILE - 8);
@@ -1769,7 +1774,7 @@
             B.wave = 0;
             B.betweenWaves = true;
             B.lives = 20 + (S.upgrades.startLives * 3);
-            // ★★★ СТАРТОВОЕ ЗОЛОТО ТЕПЕРЬ 180 ★★★
+            // ★★★ СТАРТОВОЕ ЗОЛОТО 180 ★★★
             B.gold = 180 + (S.upgrades.startGold * 40) + (B.prebattleGold || 0);
             B.reward = map.reward || 100;
             B.speed = 1;

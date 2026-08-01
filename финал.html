@@ -1,0 +1,2322 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Tower Guardians — Tower Defense</title>
+    <style>
+        /* ============================================================
+           PROFESSIONAL DESIGN SYSTEM — Tower Guardians
+           ============================================================ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            /* ----- colors ----- */
+            --bg-primary: #080c1a;
+            --bg-secondary: #0f1a2f;
+            --bg-panel: rgba(18, 30, 55, 0.85);
+            --bg-panel-border: rgba(78, 130, 255, 0.15);
+            --bg-glass: rgba(255, 255, 255, 0.04);
+            --bg-glass-hover: rgba(255, 255, 255, 0.08);
+
+            --accent-cyan: #00d4ff;
+            --accent-cyan-dim: rgba(0, 212, 255, 0.15);
+            --accent-gold: #ffd700;
+            --accent-gold-dim: rgba(255, 215, 0, 0.15);
+            --accent-rose: #ff6b8a;
+            --accent-rose-dim: rgba(255, 107, 138, 0.15);
+            --accent-purple: #b388ff;
+            --accent-green: #69f0ae;
+
+            --text-primary: #f0f4ff;
+            --text-secondary: rgba(240, 244, 255, 0.7);
+            --text-muted: rgba(240, 244, 255, 0.4);
+            --text-inverse: #080c1a;
+
+            --shadow-glow: 0 8px 48px rgba(0, 212, 255, 0.12);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --shadow-btn: 0 4px 20px rgba(0, 212, 255, 0.25);
+
+            /* ----- sizing ----- */
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+
+            --transition-fast: 0.15s ease;
+            --transition-med: 0.3s ease;
+            --transition-slow: 0.5s ease;
+
+            /* ----- fonts ----- */
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        /* ----- reset & base ----- */
+        html,
+        body {
+            height: 100%;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font);
+            font-size: 15px;
+            line-height: 1.5;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ----- scrollbar ----- */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-cyan);
+            border-radius: 99px;
+        }
+
+        /* ----- app container ----- */
+        #app {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(ellipse at 80% 0%, rgba(0, 212, 255, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 100%, rgba(179, 136, 255, 0.04) 0%, transparent 50%),
+                var(--bg-primary);
+        }
+
+        /* ----- screens ----- */
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            gap: 18px;
+            animation: fadeIn 0.4s ease;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(0, 212, 255, 0.08);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(0, 212, 255, 0.18);
+            }
+        }
+
+        /* ----- typography ----- */
+        h1 {
+            font-size: clamp(36px, 7vw, 64px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 4px 24px rgba(0, 212, 255, 0.15));
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        h2 {
+            font-size: clamp(22px, 4vw, 34px);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0;
+        }
+
+        .sub {
+            color: var(--text-secondary);
+            font-size: clamp(14px, 1.6vw, 18px);
+            font-weight: 400;
+            letter-spacing: 0.02em;
+        }
+
+        .muted {
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        /* ----- cards / panels ----- */
+        .card {
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--bg-panel-border);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            transition: var(--transition-med);
+            width: 100%;
+            max-width: 520px;
+        }
+
+        .card:hover {
+            border-color: rgba(78, 130, 255, 0.25);
+        }
+
+        .card-glass {
+            background: var(--bg-glass);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        /* ----- buttons ----- */
+        .btn {
+            cursor: pointer;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: var(--font);
+            color: var(--text-inverse);
+            background: linear-gradient(135deg, var(--accent-cyan), #0099cc);
+            box-shadow: var(--shadow-btn);
+            transition: var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.01em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent 50%);
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.35);
+        }
+        .btn:active {
+            transform: translateY(0px) scale(0.97);
+        }
+
+        .btn.alt {
+            background: linear-gradient(135deg, var(--accent-gold), #e6a800);
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.25);
+        }
+        .btn.alt:hover {
+            box-shadow: 0 8px 32px rgba(255, 215, 0, 0.35);
+        }
+
+        .btn.ghost {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+        }
+        .btn.ghost:hover {
+            background: var(--bg-glass-hover);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn.small {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: var(--radius-sm);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn .icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        /* ----- rows ----- */
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* ----- stats / badges ----- */
+        .stat {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 400;
+        }
+        .stat b {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--bg-glass);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 99px;
+            padding: 2px 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.01em;
+        }
+
+        .badge-gold {
+            background: var(--accent-gold-dim);
+            color: var(--accent-gold);
+            border-color: rgba(255, 215, 0, 0.15);
+        }
+
+        .badge-cyan {
+            background: var(--accent-cyan-dim);
+            color: var(--accent-cyan);
+            border-color: rgba(0, 212, 255, 0.15);
+        }
+
+        /* ----- level bar ----- */
+        .lvlbar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 99px;
+            overflow: hidden;
+            width: 100%;
+        }
+        .lvlbar>i {
+            display: block;
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-gold));
+            transition: width 0.6s ease;
+        }
+
+        /* ----- level items ----- */
+        .levelItem {
+            width: 180px;
+            cursor: pointer;
+            text-align: center;
+            padding: 16px 18px;
+            border-radius: var(--radius-md);
+            background: var(--bg-panel);
+            border: 1px solid var(--bg-panel-border);
+            transition: var(--transition-med);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .levelItem:hover:not(.locked) {
+            border-color: var(--accent-cyan);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.08);
+        }
+        .levelItem.locked {
+            opacity: 0.4;
+            filter: grayscale(0.6);
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .levelItem .name {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+        .levelItem .meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ----- shop rows ----- */
+        .shopRow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .shopRow:last-child {
+            border-bottom: none;
+        }
+        .shopRow .info {
+            flex: 1;
+        }
+        .shopRow .info .title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .shopRow .info .desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ----- toast ----- */
+        .toast {
+            position: fixed;
+            left: 50%;
+            top: 24px;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--bg-panel);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--bg-panel-border);
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            font-weight: 500;
+            font-size: 14px;
+            box-shadow: var(--shadow-card);
+            color: var(--text-primary);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ============================================================
+           GAME HUD
+           ============================================================ */
+        #gameWrap {
+            position: relative;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        #gameWrap.active {
+            display: flex;
+            animation: fadeIn 0.35s ease;
+        }
+
+        #hud {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 10px 16px;
+            width: 100%;
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--bg-panel-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-card);
+        }
+
+        .pill {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 99px;
+            padding: 6px 14px;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            transition: var(--transition-fast);
+        }
+        .pill .val {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+        .pill.lives .val {
+            color: var(--accent-rose);
+        }
+        .pill.gold .val {
+            color: var(--accent-gold);
+        }
+        .pill.wave .val {
+            color: var(--accent-cyan);
+        }
+
+        #board {
+            position: relative;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-card), 0 0 60px rgba(0, 212, 255, 0.04);
+            border: 1px solid var(--bg-panel-border);
+            touch-action: none;
+            width: 100%;
+            aspect-ratio: 15 / 10;
+            max-width: 960px;
+            background: var(--bg-secondary);
+        }
+        #board canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        /* ----- tower bar ----- */
+        #towerBar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 8px 0;
+            width: 100%;
+            max-width: 960px;
+        }
+
+        .tw {
+            cursor: pointer;
+            background: var(--bg-panel);
+            border: 2px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            min-width: 80px;
+            text-align: center;
+            transition: var(--transition-fast);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            position: relative;
+        }
+        .tw:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        .tw.sel {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px var(--accent-cyan-dim), var(--shadow-btn);
+        }
+        .tw .ic {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 4px;
+            display: block;
+        }
+        .tw .nm {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .tw .cost {
+            font-size: 11px;
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        /* ----- overlay (pause / end) ----- */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(8, 12, 26, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            z-index: 20;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+        .overlay.show {
+            display: flex;
+        }
+        .overlay h2 {
+            font-size: clamp(28px, 5vw, 42px);
+            margin: 0;
+        }
+        .overlay .sub {
+            font-size: 16px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        .overlay .btns {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        /* ============================================================
+           EDITOR
+           ============================================================ */
+        #editor .editor-board {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--bg-panel-border);
+            background: var(--bg-secondary);
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 15 / 10;
+        }
+        #editor .editor-board canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        .editorPalette {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .swatch {
+            cursor: pointer;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            border: 2px solid rgba(255, 255, 255, 0.06);
+            font-size: 12px;
+            font-weight: 600;
+            transition: var(--transition-fast);
+            font-family: var(--font);
+            color: var(--text-primary);
+            background: var(--bg-glass);
+        }
+        .swatch:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .swatch.sel {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px var(--accent-cyan-dim);
+        }
+
+        /* ============================================================
+           PRE-BATTLE
+           ============================================================ */
+        #prebattle .card {
+            max-width: 560px;
+        }
+        #pbList .shopRow .btn {
+            min-width: 80px;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 640px) {
+            .screen {
+                padding: 16px;
+                gap: 12px;
+            }
+            .card {
+                padding: 16px;
+                border-radius: var(--radius-md);
+            }
+            #hud {
+                padding: 8px 12px;
+                gap: 6px;
+                border-radius: var(--radius-sm);
+            }
+            .pill {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+            .btn {
+                padding: 10px 18px;
+                font-size: 13px;
+            }
+            .btn.small {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+            .tw {
+                min-width: 60px;
+                padding: 6px 10px;
+            }
+            .tw .ic {
+                width: 32px;
+                height: 32px;
+            }
+            .tw .nm {
+                font-size: 10px;
+            }
+            .tw .cost {
+                font-size: 10px;
+            }
+            .levelItem {
+                width: 140px;
+                padding: 12px;
+            }
+            .levelItem .name {
+                font-size: 14px;
+            }
+            #towerBar {
+                gap: 6px;
+            }
+            .toast {
+                font-size: 12px;
+                padding: 8px 16px;
+                top: 12px;
+                max-width: 90%;
+            }
+            .overlay h2 {
+                font-size: 24px;
+            }
+            .overlay .sub {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #hud .pill.hide-mobile {
+                display: none;
+            }
+            .row {
+                gap: 8px;
+            }
+            .btn {
+                font-size: 12px;
+                padding: 8px 14px;
+            }
+        }
+
+        /* ============================================================
+           MISC / UTILITIES
+           ============================================================ */
+        .foot {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 0.06em;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .gap-8 {
+            gap: 8px;
+        }
+        .gap-4 {
+            gap: 4px;
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .mt-12 {
+            margin-top: 12px;
+        }
+        .w-full {
+            width: 100%;
+        }
+        .max-w-full {
+            max-width: 100%;
+        }
+
+        /* scrollable card content */
+        .card-scroll {
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .card-scroll::-webkit-scrollbar {
+            width: 3px;
+        }
+        .card-scroll::-webkit-scrollbar-thumb {
+            background: var(--accent-cyan);
+            border-radius: 99px;
+        }
+
+        /* glitch / shimmer for buttons */
+        .btn-shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-shimmer::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Tower menu popup */
+        .tower-menu {
+            position: fixed;
+            z-index: 60;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            min-width: 240px;
+            text-align: center;
+            background: var(--bg-panel);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--bg-panel-border);
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            box-shadow: var(--shadow-card), 0 20px 80px rgba(0, 0, 0, 0.6);
+            animation: popIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.92);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+        .tower-menu .title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .tower-menu .stats {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 6px 0 12px;
+        }
+        .tower-menu .row {
+            gap: 8px;
+        }
+
+        /* ============================================================
+           CANVAS ENHANCEMENTS (visual only, JS handles drawing)
+           ============================================================ */
+        #board canvas {
+            background: var(--bg-secondary);
+        }
+
+        /* responsive board aspect ratio fallback */
+        @supports not (aspect-ratio: 15/10) {
+            #board {
+                height: auto;
+                max-height: 70vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+
+        <!-- ========== TOAST ========== -->
+        <div class="toast" id="toast"></div>
+
+        <!-- ========== MENU ========== -->
+        <div class="screen active" id="menu">
+            <div style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <h1>TOWER GUARDIANS</h1>
+                <div class="sub">Защити ядро. Строй башни. Стань легендой.</div>
+            </div>
+
+            <div class="card" style="max-width:400px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <span class="stat">Игрок <b id="mPlayerLvl">1</b> ур.</span>
+                    <span class="stat">💰 <b id="mGold">0</b></span>
+                    <span class="stat">🗺️ <b id="mMaps">1</b></span>
+                </div>
+                <div style="margin-top:6px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted);">
+                        <span>Опыт</span>
+                        <span><b id="mXp">0</b>/<b id="mXpNext">100</b></span>
+                    </div>
+                    <div class="lvlbar" style="margin-top:2px;"><i id="mXpBar" style="width:0%;"></i></div>
+                </div>
+            </div>
+
+            <div class="row">
+                <button class="btn" onclick="Game.goLevels()">⚔️ Играть</button>
+                <button class="btn alt" onclick="Game.goShop()">🛒 Магазин</button>
+                <button class="btn ghost" onclick="Game.goEditor()">✏️ Редактор</button>
+            </div>
+            <div class="row" style="margin-top:4px;">
+                <button class="btn ghost small" onclick="Game.hardReset()">↺ Сброс</button>
+                <button class="btn ghost small" id="soundToggle" onclick="Game.toggleSound()">🔊 Звук: вкл</button>
+            </div>
+        </div>
+
+        <!-- ========== LEVELS ========== -->
+        <div class="screen" id="levels">
+            <h2>Выбор карты</h2>
+            <div class="row" id="levelList" style="max-width:800px;"></div>
+            <button class="btn ghost" onclick="Game.show('menu')">← Назад</button>
+        </div>
+
+        <!-- ========== SHOP ========== -->
+        <div class="screen" id="shop">
+            <h2>Магазин улучшений</h2>
+            <div class="muted">Золото зарабатывается за прохождение волн и карт.</div>
+            <div class="card" style="max-width:520px;">
+                <div style="text-align:right; color:var(--text-secondary); font-size:14px; margin-bottom:8px;">
+                    💰 <b id="sGold" style="color:var(--accent-gold);">0</b>
+                </div>
+                <div class="card-scroll" id="shopList"></div>
+            </div>
+            <button class="btn ghost" onclick="Game.show('menu')">← Назад</button>
+        </div>
+
+        <!-- ========== PRE-BATTLE ========== -->
+        <div class="screen" id="prebattle">
+            <h2 id="pbTitle">Подготовка к бою</h2>
+            <div class="card" style="max-width:560px;">
+                <div class="muted" style="margin-bottom:10px;">Выбери стартовые бонусы на этот бой (тратится золото):</div>
+                <div id="pbList"></div>
+                <div style="text-align:right; margin-top:12px; color:var(--text-secondary); font-size:14px;">
+                    💰 <b id="pbGold" style="color:var(--accent-gold);">0</b>
+                </div>
+            </div>
+            <div class="row">
+                <button class="btn" onclick="Game.startBattle()">В бой →</button>
+                <button class="btn ghost" onclick="Game.goLevels()">← Назад</button>
+            </div>
+        </div>
+
+        <!-- ========== GAME ========== -->
+        <div id="gameWrap">
+            <div id="hud">
+                <span class="pill lives">❤️ <span class="val" id="hLives">20</span></span>
+                <span class="pill gold">💰 <span class="val" id="hGold">100</span></span>
+                <span class="pill wave">🌊 <span class="val" id="hWave">0</span>/<span class="val" id="hWaveMax">10</span></span>
+                <span class="pill" id="pillSpeed" onclick="Game.toggleSpeed()" style="cursor:pointer;">⏩ <span class="val" id="hSpeed">1</span>x</span>
+                <button class="btn small" id="btnStart" onclick="Game.callWave()">▶ Волна</button>
+                <button class="btn small ghost" onclick="Game.pauseToggle()">⏸</button>
+                <button class="btn small ghost" onclick="Game.quitBattle()">✕</button>
+            </div>
+
+            <div id="board">
+                <canvas id="cv"></canvas>
+                <div class="overlay" id="ovl">
+                    <h2 id="ovlTitle">Пауза</h2>
+                    <div class="sub" id="ovlText"></div>
+                    <div class="btns" id="ovlBtns"></div>
+                </div>
+            </div>
+
+            <div id="towerBar"></div>
+        </div>
+
+        <!-- ========== EDITOR ========== -->
+        <div class="screen" id="editor">
+            <h2>Редактор карт</h2>
+            <div style="width:100%; max-width:720px; text-align:center;">
+                <div class="editor-board">
+                    <canvas id="edcv"></canvas>
+                </div>
+                <div class="editorPalette" id="edPalette"></div>
+                <div class="muted" style="margin-top:6px; font-size:12px;">
+                    Рисуй мышью/пальцем. Нужны <b style="color:var(--accent-cyan);">СТАРТ</b> и <b style="color:var(--accent-rose);">БАЗА</b>, соединённые дорогой.
+                </div>
+            </div>
+            <div class="row">
+                <button class="btn small" onclick="Game.editorTest()">🧪 Тест</button>
+                <button class="btn small alt" onclick="Game.editorSave()">💾 Сохранить</button>
+                <button class="btn small ghost" onclick="Game.editorClear()">🗑️ Очистить</button>
+                <button class="btn small ghost" onclick="Game.show('menu')">← Назад</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="foot">Tower Guardians · Yandex Games ready</div>
+
+    <script>
+        /* ============================================================
+           TOWER GUARDIANS — full game logic + professional UI
+           ============================================================ */
+        "use strict";
+
+        /* ---------- Yandex SDK (safe fallback) ---------- */
+        const YA = { sdk: null, player: null, ready: false };
+        (function loadYaSDK() {
+            const s = document.createElement('script');
+            s.src = 'https://yandex.ru/games/sdk/v2';
+            s.onload = () => {
+                if (window.YaGames) {
+                    YaGames.init().then(sdk => {
+                        YA.sdk = sdk;
+                        YA.ready = true;
+                        try { sdk.getPlayer({ scopes: false }).then(p => { YA.player = p; }).catch(() => {}); } catch (e) {}
+                    }).catch(() => {});
+                }
+            };
+            s.onerror = () => {};
+            document.head.appendChild(s);
+        })();
+
+        /* ---------- Audio ---------- */
+        const Sound = {
+            ctx: null,
+            on: true,
+            init() {
+                if (!this.ctx) {
+                    try { this.ctx = new(window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+                }
+            },
+            beep(freq = 440, dur = .08, type = 'square', vol = .08) {
+                if (!this.on || !this.ctx) return;
+                const t = this.ctx.currentTime,
+                    o = this.ctx.createOscillator(),
+                    g = this.ctx.createGain();
+                o.type = type;
+                o.frequency.setValueAtTime(freq, t);
+                g.gain.setValueAtTime(vol, t);
+                g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+                o.connect(g).connect(this.ctx.destination);
+                o.start(t);
+                o.stop(t + dur);
+            },
+            shoot() { this.beep(880, .05, 'square', .05); },
+            hit() { this.beep(220, .06, 'sawtooth', .05); },
+            place() { this.beep(520, .09, 'triangle', .09);
+                setTimeout(() => this.beep(720, .09, 'triangle', .06), 100); },
+            gold() { this.beep(660, .08, 'sine', .08);
+                setTimeout(() => this.beep(990, .08, 'sine', .06), 120); },
+            wave() { this.beep(160, .25, 'sawtooth', .08); },
+            win() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => this.beep(f, .18, 'triangle', .1), i * 130)); },
+            lose() { [400, 300, 200, 120].forEach((f, i) => setTimeout(() => this.beep(f, .2, 'sawtooth', .1), i * 140)); },
+            leak() { this.beep(120, .2, 'square', .1); }
+        };
+
+        /* ---------- Persistent state ---------- */
+        const SAVE_KEY = 'tower_guardians_save_v1';
+
+        function defaultState() {
+            return {
+                gold: 0,
+                xp: 0,
+                playerLvl: 1,
+                unlockedMaps: 1,
+                bestWave: {},
+                upgrades: { dmg: 0, range: 0, income: 0, startGold: 0, startLives: 0 },
+                customMaps: []
+            };
+        }
+        let S = defaultState();
+
+        function saveState() {
+            try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
+            if (YA.ready && YA.player) { try { YA.player.setData({ save: S }); } catch (e) {} }
+        }
+
+        function loadState() {
+            try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { S = Object.assign(defaultState(), JSON.parse(raw)); } } catch (
+            e) {}
+            if (YA.ready && YA.player) {
+                try {
+                    YA.player.getData(['save']).then(d => {
+                        if (d && d.save) { S = Object.assign(defaultState(), d.save);
+                            refreshMenu(); }
+                    }).catch(() => {});
+                } catch (e) {}
+            }
+        }
+
+        /* ---------- XP ---------- */
+        function xpForLevel(l) { return 100 + (l - 1) * 80; }
+
+        function addXp(n) {
+            S.xp += n;
+            while (S.xp >= xpForLevel(S.playerLvl)) { S.xp -= xpForLevel(S.playerLvl);
+                S.playerLvl++;
+                toast('🎉 Новый уровень игрока: ' + S.playerLvl);
+                Sound.win(); }
+            saveState();
+            refreshMenu();
+        }
+
+        function addGold(n) { S.gold += n;
+            saveState();
+            refreshMenu(); }
+
+        /* ---------- Meta upgrades ---------- */
+        const META = [
+            { key: 'dmg', name: 'Урон башен', desc: '+8% урона за уровень', max: 8, cost: l => 60 + l * 45,
+            val: l => '+' + (l * 8) + '%' },
+            { key: 'range', name: 'Дальность', desc: '+6% дальности за уровень', max: 6, cost: l => 60 + l * 40,
+            val: l => '+' + (l * 6) + '%' },
+            { key: 'income', name: 'Доход', desc: '+10% золота за убийство', max: 6, cost: l => 70 + l * 50,
+            val: l => '+' + (l * 10) + '%' },
+            { key: 'startGold', name: 'Стартовое золото', desc: '+40 золота в начале боя', max: 8, cost: l => 50 + l * 40,
+            val: l => '+' + (l * 40) },
+            { key: 'startLives', name: 'Прочность ядра', desc: '+3 жизни в начале боя', max: 6, cost: l => 60 + l * 45,
+            val: l => '+' + (l * 3) }
+        ];
+
+        function metaMult(key) {
+            const l = S.upgrades[key] || 0;
+            if (key === 'dmg') return 1 + l * 0.08;
+            if (key === 'range') return 1 + l * 0.06;
+            if (key === 'income') return 1 + l * 0.10;
+            return l;
+        }
+
+        /* ---------- Towers ---------- */
+        const TOWERS = {
+            arrow: { name: 'Лучник', cost: 60, color: '#7fe3ff', dmg: 14, range: 110, rate: 520, bullet: '#bff0ff',
+                bColor: '#3aa0d8' },
+            cannon: { name: 'Пушка', cost: 110, color: '#ffb36b', dmg: 42, range: 95, rate: 1100, splash: 38,
+                bullet: '#ffd9a8', bColor: '#d68433' },
+            frost: { name: 'Мороз', cost: 90, color: '#a9d9ff', dmg: 9, range: 100, rate: 700, slow: .5, slowTime: 1400,
+                bullet: '#dff2ff', bColor: '#6fb6e6' },
+            tesla: { name: 'Молния', cost: 150, color: '#d9a9ff', dmg: 26, range: 120, rate: 640, chain: 3,
+                bullet: '#f0d9ff', bColor: '#a06fe6' },
+        };
+        const TOWER_ORDER = ['arrow', 'cannon', 'frost', 'tesla'];
+
+        /* ---------- Maps ---------- */
+        const COLS = 15,
+            ROWS = 10;
+
+        function makePath(cells) {
+            const g = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+            cells.forEach(([c, r]) => { if (g[r]) g[r][c] = 1; });
+            const [sc, sr] = cells[0],
+                [bc, br] = cells[cells.length - 1];
+            g[sr][sc] = 2;
+            g[br][bc] = 3;
+            return { grid: g, path: cells.slice() };
+        }
+
+        function straightPath() { const a = []; for (let c = 0; c < COLS; c++) a.push([c, 5]); return a; }
+
+        function zigzagPath() { const a = [];
+            for (let c = 0; c < COLS; c++) a.push([c, 1]);
+            for (let r = 1; r <= 8; r++) a.push([COLS - 1, r]);
+            for (let c = COLS - 1; c >= 0; c--) a.push([c, 8]);
+            return a; }
+
+        function snakePath() { const a = [];
+            let r = 1;
+            for (let c = 0; c < COLS; c++) a.push([c, r]);
+            for (r = 1; r < 4; r++) a.push([COLS - 1, r]);
+            r = 3;
+            for (let c = COLS - 1; c >= 0; c--) a.push([c, r]);
+            for (r = 3; r < 7; r++) a.push([0, r]);
+            r = 6;
+            for (let c = 0; c < COLS; c++) a.push([c, r]);
+            return a; }
+
+        const BUILTIN = [
+            { name: 'Долина', theme: 'grass', ...makePath(straightPath()), waves: 8, reward: 120 },
+            { name: 'Зигзаг', theme: 'sand', ...makePath(zigzagPath()), waves: 10, reward: 170 },
+            { name: 'Змейка', theme: 'snow', ...makePath(snakePath()), waves: 12, reward: 230 },
+        ];
+
+        function allMaps() { return BUILTIN.concat(S.customMaps.map(m => ({ ...m, custom: true }))); }
+
+        /* ---------- Canvas / rendering ---------- */
+        let cv, ctx, TILE = 48,
+            W, H;
+
+        function fitBoard() {
+            const container = document.getElementById('board');
+            const rect = container.getBoundingClientRect();
+            const w = rect.width || Math.min(window.innerWidth - 24, 960);
+            TILE = Math.max(26, Math.floor(w / COLS));
+            W = TILE * COLS;
+            H = TILE * ROWS;
+            cv.width = W;
+            cv.height = H;
+            container.style.width = '100%';
+            container.style.aspectRatio = COLS / ROWS;
+        }
+
+        /* Theme palettes */
+        const THEMES = {
+            grass: { bg1: '#2b6b3f', bg2: '#245c37', path: '#c9a76a', path2: '#b8965b' },
+            sand: { bg1: '#c7a35a', bg2: '#b8944c', path: '#8a6b3a', path2: '#7a5d31' },
+            snow: { bg1: '#cfe3f2', bg2: '#bcd6ea', path: '#9fb4c7', path2: '#8ea6bb' },
+        };
+
+        /* ---------- Battle state ---------- */
+        const B = {
+            map: null,
+            cellType: null,
+            path: [],
+            waypoints: [],
+            towers: [],
+            enemies: [],
+            bullets: [],
+            particles: [],
+            lives: 20,
+            gold: 100,
+            wave: 0,
+            waveMax: 10,
+            spawning: false,
+            spawnQueue: [],
+            spawnTimer: 0,
+            selTower: null,
+            hover: { c: -1, r: -1 },
+            running: false,
+            paused: false,
+            speed: 1,
+            reward: 100,
+            testMode: false,
+            testMap: null,
+            last: 0,
+            betweenWaves: true
+        };
+
+        function buildWaypoints() {
+            B.waypoints = B.path.map(([c, r]) => ({ x: c * TILE + TILE / 2, y: r * TILE + TILE / 2 }));
+        }
+
+        function cellIsPath(c, r) { return B.cellType[r] && B.cellType[r][c] >= 1; }
+
+        /* ---------- Enemy ---------- */
+        function enemyDef(type, waveScale) {
+            const base = {
+                grunt: { hp: 60, speed: .9, gold: 8, color: '#ff8a5c', r: .32, xp: 3 },
+                fast: { hp: 42, speed: 1.7, gold: 10, color: '#ffe066', r: .26, xp: 4 },
+                tank: { hp: 220, speed: .55, gold: 22, color: '#9aa7c7', r: .40, xp: 9 },
+                swarm: { hp: 26, speed: 1.2, gold: 5, color: '#7dffb0', r: .22, xp: 2 },
+                boss: { hp: 1400, speed: .5, gold: 120, color: '#ff5c7a', r: .55, xp: 60 },
+            } [type];
+            const b = { ...base };
+            b.hp = Math.round(b.hp * waveScale);
+            b.maxHp = b.hp;
+            return b;
+        }
+
+        function buildWave(n) {
+            const q = [];
+            const scale = 1 + (n - 1) * 0.22 + Math.pow(n, 1.35) * 0.03;
+            const push = (type, count, gap) => { for (let i = 0; i < count; i++) q.push({ type, delay: gap }); };
+            if (n % 5 === 0) { push('boss', 1, 0);
+                push('grunt', 6 + n, 420); } else {
+                push('grunt', 5 + Math.floor(n * 1.2), 620);
+                if (n >= 2) push('fast', 3 + Math.floor(n * 0.8), 380);
+                if (n >= 3) push('swarm', 4 + n, 220);
+                if (n >= 4) push('tank', 1 + Math.floor(n / 2), 900);
+            }
+            q.forEach(e => { const d = enemyDef(e.type, scale);
+                e.def = d; });
+            return q;
+        }
+
+        /* ---------- Enemy spawning & movement ---------- */
+        function spawnEnemy(def) {
+            const wp = B.waypoints;
+            B.enemies.push({
+                x: wp[0].x,
+                y: wp[0].y,
+                wpi: 1,
+                hp: def.hp,
+                maxHp: def.maxHp,
+                speed: def.speed,
+                baseSpeed: def.speed,
+                gold: def.gold,
+                color: def.color,
+                r: def.r * TILE,
+                xp: def.xp,
+                slowT: 0,
+                dead: false,
+                t: Math.random() * 6
+            });
+        }
+
+        function moveEnemy(e, dt) {
+            if (e.slowT > 0) { e.slowT -= dt;
+                e.speed = e.baseSpeed * 0.5; } else e.speed = e.baseSpeed;
+            const wp = B.waypoints;
+            if (e.wpi >= wp.length) { leak(e); return; }
+            const target = wp[e.wpi];
+            const dx = target.x - e.x,
+                dy = target.y - e.y,
+                d = Math.hypot(dx, dy);
+            const step = e.speed * TILE * dt / 1000 * 1.6;
+            if (d <= step) { e.x = target.x;
+                e.y = target.y;
+                e.wpi++; if (e.wpi >= wp.length) leak(e); } else { e.x += dx / d * step;
+                e.y += dy / d * step; }
+            e.t += dt / 1000;
+        }
+
+        function leak(e) {
+            if (e.dead) return;
+            e.dead = true;
+            B.lives -= 1;
+            Sound.leak();
+            flashDamage();
+            if (B.lives <= 0) endBattle(false);
+            refreshHud();
+        }
+
+        /* ---------- Towers ---------- */
+        function placeTower(c, r) {
+            if (!B.selTower) return;
+            const def = TOWERS[B.selTower];
+            if (B.gold < def.cost) { toast('Не хватает золота');
+                Sound.hit(); return; }
+            if (cellIsPath(c, r)) { toast('Нельзя строить на дороге'); return; }
+            if (B.towers.some(t => t.c === c && t.r === r)) { toast('Здесь уже башня'); return; }
+            B.gold -= def.cost;
+            B.towers.push({
+                type: B.selTower,
+                c,
+                r,
+                x: c * TILE + TILE / 2,
+                y: r * TILE + TILE / 2,
+                cd: 0,
+                angle: 0,
+                lvl: 1,
+                invested: def.cost,
+                def
+            });
+            Sound.place();
+            spawnParticles(c * TILE + TILE / 2, r * TILE + TILE / 2, def.color, 10);
+            refreshHud();
+        }
+
+        function towerRange(t) { return t.def.range * (1 + (t.lvl - 1) * 0.12) * metaMult('range'); }
+
+        function towerDmg(t) { return t.def.dmg * (1 + (t.lvl - 1) * 0.35) * metaMult('dmg'); }
+
+        function upgradeTower(t) {
+            const cost = Math.round(t.invested * 0.8);
+            if (B.gold < cost) { toast('Нужно ' + cost + ' золота'); return; }
+            B.gold -= cost;
+            t.invested += cost;
+            t.lvl++;
+            Sound.place();
+            toast(t.def.name + ' → ур.' + t.lvl);
+            refreshHud();
+        }
+
+        function sellTower(t) {
+            const back = Math.round(t.invested * 0.6);
+            B.gold += back;
+            B.towers = B.towers.filter(x => x !== t);
+            Sound.gold();
+            toast('Продано (+' + back + ')');
+            refreshHud();
+        }
+
+        function fireTowers(dt) {
+            for (const t of B.towers) {
+                t.cd -= dt;
+                const range = towerRange(t);
+                let target = null,
+                    bestProg = -1;
+                for (const e of B.enemies) {
+                    if (e.dead) continue;
+                    const d = Math.hypot(e.x - t.x, e.y - t.y);
+                    if (d <= range && e.wpi > bestProg) { bestProg = e.wpi;
+                        target = e; }
+                }
+                if (target) {
+                    t.angle = Math.atan2(target.y - t.y, target.x - t.x);
+                    if (t.cd <= 0) { t.cd = t.def.rate;
+                        shoot(t, target); }
+                }
+            }
+        }
+
+        function shoot(t, target) {
+            Sound.shoot();
+            if (t.type === 'tesla') {
+                let hits = [target];
+                let cur = target;
+                for (let i = 1; i < t.def.chain; i++) {
+                    let nxt = null,
+                        bd = 90;
+                    for (const e of B.enemies) {
+                        if (e.dead || hits.includes(e)) continue;
+                        const d = Math.hypot(e.x - cur.x, e.y - cur.y);
+                        if (d < bd) { bd = d;
+                            nxt = e; }
+                    }
+                    if (!nxt) break;
+                    hits.push(nxt);
+                    cur = nxt;
+                }
+                let prev = { x: t.x, y: t.y };
+                hits.forEach(e => {
+                    damageEnemy(e, towerDmg(t));
+                    B.particles.push({ type: 'lightning', x1: prev.x, y1: prev.y, x2: e.x, y2: e.y, life: 120,
+                        max: 120, color: t.def.bColor });
+                    prev = e;
+                });
+                return;
+            }
+            B.bullets.push({
+                x: t.x,
+                y: t.y,
+                tx: target.x,
+                ty: target.y,
+                target,
+                speed: 9,
+                dmg: towerDmg(t),
+                color: t.def.bullet,
+                type: t.type,
+                def: t.def,
+                r: 4,
+                done: false
+            });
+        }
+
+        function updateBullets(dt) {
+            for (const b of B.bullets) {
+                if (b.target && !b.target.dead) { b.tx = b.target.x;
+                    b.ty = b.target.y; }
+                const dx = b.tx - b.x,
+                    dy = b.ty - b.y,
+                    d = Math.hypot(dx, dy);
+                const step = b.speed * TILE / 48 * dt / 16;
+                if (d <= step + 2) {
+                    hitBullet(b);
+                    b.done = true;
+                } else { b.x += dx / d * step;
+                    b.y += dy / d * step; }
+            }
+            B.bullets = B.bullets.filter(b => !b.done);
+        }
+
+        function hitBullet(b) {
+            Sound.hit();
+            if (b.def.splash) {
+                for (const e of B.enemies) {
+                    if (e.dead) continue;
+                    if (Math.hypot(e.x - b.tx, e.y - b.ty) <= b.def.splash) { damageEnemy(e, b.dmg); }
+                }
+                spawnParticles(b.tx, b.ty, b.def.bColor, 14);
+            } else {
+                if (b.target && !b.target.dead) {
+                    damageEnemy(b.target, b.dmg);
+                    if (b.def.slow) { b.target.slowT = b.def.slowTime; }
+                }
+                spawnParticles(b.tx, b.ty, b.color, 6);
+            }
+        }
+
+        function damageEnemy(e, dmg) {
+            if (e.dead) return;
+            e.hp -= dmg;
+            if (e.hp <= 0) {
+                e.dead = true;
+                const g = Math.round(e.gold * metaMult('income'));
+                B.gold += g;
+                addXp(e.xp);
+                spawnParticles(e.x, e.y, e.color, 16);
+                B.particles.push({ type: 'gold', x: e.x, y: e.y, life: 600, max: 600, val: '+' + g });
+                Sound.gold();
+                refreshHud();
+            }
+        }
+
+        /* ---------- Particles ---------- */
+        function spawnParticles(x, y, color, n) {
+            for (let i = 0; i < n; i++) {
+                const a = Math.random() * Math.PI * 2,
+                    sp = Math.random() * 3 + 1;
+                B.particles.push({ type: 'spark', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 400, max: 400,
+                    color, r: Math.random() * 3 + 1 });
+            }
+        }
+
+        function updateParticles(dt) {
+            for (const p of B.particles) {
+                p.life -= dt;
+                if (p.type === 'spark') { p.x += p.vx * dt / 16;
+                    p.y += p.vy * dt / 16;
+                    p.vy += 0.15 * dt / 16; }
+                if (p.type === 'gold') { p.y -= 0.4 * dt / 16; }
+            }
+            B.particles = B.particles.filter(p => p.life > 0);
+        }
+
+        /* ---------- Rendering ---------- */
+        let dmgFlash = 0;
+
+        function flashDamage() { dmgFlash = 1; }
+
+        function draw() {
+            const th = THEMES[B.map.theme] || THEMES.grass;
+            // background tiles
+            for (let r = 0; r < ROWS; r++)
+                for (let c = 0; c < COLS; c++) {
+                    ctx.fillStyle = ((c + r) % 2 === 0) ? th.bg1 : th.bg2;
+                    ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
+                }
+            // path
+            for (let r = 0; r < ROWS; r++)
+                for (let c = 0; c < COLS; c++) {
+                    if (B.cellType[r][c] >= 1) {
+                        ctx.fillStyle = ((c + r) % 2 === 0) ? th.path : th.path2;
+                        ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
+                    }
+                    if (B.cellType[r][c] === 2) drawFlag(c * TILE + TILE / 2, r * TILE + TILE / 2, '#4de1c1', 'СТАРТ');
+                    if (B.cellType[r][c] === 3) drawCore(c * TILE + TILE / 2, r * TILE + TILE / 2);
+                }
+            // build hover
+            if (B.selTower && B.hover.c >= 0 && !cellIsPath(B.hover.c, B.hover.r)) {
+                const def = TOWERS[B.selTower],
+                    x = B.hover.c * TILE + TILE / 2,
+                    y = B.hover.r * TILE + TILE / 2;
+                const occupied = B.towers.some(t => t.c === B.hover.c && t.r === B.hover.r);
+                ctx.globalAlpha = .2;
+                ctx.fillStyle = occupied ? '#ff5c7a' : def.color;
+                ctx.beginPath();
+                ctx.arc(x, y, def.range * metaMult('range'), 0, 7);
+                ctx.fill();
+                ctx.globalAlpha = .5;
+                ctx.fillRect(B.hover.c * TILE + 4, B.hover.r * TILE + 4, TILE - 8, TILE - 8);
+                ctx.globalAlpha = 1;
+            }
+            // towers
+            for (const t of B.towers) drawTower(t);
+            // enemies
+            for (const e of B.enemies)
+                if (!e.dead) drawEnemy(e);
+            // bullets
+            for (const b of B.bullets) {
+                ctx.fillStyle = b.color;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, Math.max(3, TILE * 0.08), 0, 7);
+                ctx.fill();
+            }
+            // particles
+            for (const p of B.particles) {
+                if (p.type === 'spark') {
+                    ctx.globalAlpha = Math.max(0, p.life / p.max);
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, 7);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                } else if (p.type === 'gold') {
+                    ctx.globalAlpha = Math.max(0, p.life / p.max);
+                    ctx.fillStyle = '#ffe066';
+                    ctx.font = 'bold ' + Math.round(TILE * 0.32) + 'px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(p.val, p.x, p.y);
+                    ctx.globalAlpha = 1;
+                } else if (p.type === 'lightning') {
+                    ctx.globalAlpha = Math.max(0, p.life / p.max);
+                    ctx.strokeStyle = p.color;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x1, p.y1);
+                    const mx = (p.x1 + p.x2) / 2 + (Math.random() - .5) * 20,
+                        my = (p.y1 + p.y2) / 2 + (Math.random() - .5) * 20;
+                    ctx.lineTo(mx, my);
+                    ctx.lineTo(p.x2, p.y2);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+            }
+            // damage flash
+            if (dmgFlash > 0) {
+                ctx.fillStyle = 'rgba(255,60,90,' + (dmgFlash * 0.35) + ')';
+                ctx.fillRect(0, 0, W, H);
+                dmgFlash -= 0.05;
+            }
+        }
+
+        function drawFlag(x, y, color, txt) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x - 2, y - TILE * 0.3, 3, TILE * 0.6);
+            ctx.beginPath();
+            ctx.moveTo(x + 1, y - TILE * 0.3);
+            ctx.lineTo(x + TILE * 0.28, y - TILE * 0.18);
+            ctx.lineTo(x + 1, y - TILE * 0.06);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.font = 'bold ' + Math.round(TILE * 0.22) + 'px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(txt, x, y + TILE * 0.08);
+        }
+
+        function drawCore(x, y) {
+            const pulse = 1 + Math.sin(Date.now() / 300) * 0.08;
+            const grd = ctx.createRadialGradient(x, y, 2, x, y, TILE * 0.5 * pulse);
+            grd.addColorStop(0, '#bff8ff');
+            grd.addColorStop(.5, '#4de1c1');
+            grd.addColorStop(1, 'rgba(77,225,193,0)');
+            ctx.fillStyle = grd;
+            ctx.beginPath();
+            ctx.arc(x, y, TILE * 0.5 * pulse, 0, 7);
+            ctx.fill();
+            ctx.fillStyle = '#0b1020';
+            ctx.beginPath();
+            ctx.arc(x, y, TILE * 0.18, 0, 7);
+            ctx.fill();
+            ctx.strokeStyle = '#bff8ff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#bff8ff';
+            ctx.font = 'bold ' + Math.round(TILE * 0.22) + 'px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⚡', x, y + 1);
+        }
+
+        function drawTower(t) {
+            const x = t.x,
+                y = t.y,
+                d = t.def,
+                s = TILE;
+            // shadow
+            ctx.fillStyle = 'rgba(0,0,0,.3)';
+            ctx.beginPath();
+            ctx.ellipse(x, y + s * 0.14, s * 0.32, s * 0.16, 0, 0, 7);
+            ctx.fill();
+            // base
+            ctx.fillStyle = d.bColor;
+            roundRect(ctx, x - s * 0.26, y - s * 0.02, s * 0.52, s * 0.30, 6);
+            ctx.fill();
+            // turret
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(t.angle);
+            ctx.fillStyle = d.color;
+            ctx.fillRect(0, -s * 0.09, s * 0.34, s * 0.18);
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.20, 0, 7);
+            ctx.fill();
+            ctx.fillStyle = d.bColor;
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.11, 0, 7);
+            ctx.fill();
+            ctx.restore();
+            // level pips
+            for (let i = 0; i < t.lvl && i < 5; i++) {
+                ctx.fillStyle = '#ffe066';
+                ctx.beginPath();
+                ctx.arc(x - s * 0.18 + i * 6, y - s * 0.22, 2.4, 0, 7);
+                ctx.fill();
+            }
+        }
+
+        function drawEnemy(e) {
+            const wob = Math.sin(e.t * 8) * e.r * 0.12;
+            // body
+            ctx.fillStyle = e.color;
+            ctx.beginPath();
+            ctx.arc(e.x, e.y + wob, e.r, 0, 7);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,.2)';
+            ctx.beginPath();
+            ctx.arc(e.x - e.r * 0.3, e.y - e.r * 0.3 + wob, e.r * 0.3, 0, 7);
+            ctx.fill();
+            // eyes
+            ctx.fillStyle = '#0b1020';
+            ctx.beginPath();
+            ctx.arc(e.x - e.r * 0.25, e.y + wob, e.r * 0.14, 0, 7);
+            ctx.arc(e.x + e.r * 0.25, e.y + wob, e.r * 0.14, 0, 7);
+            ctx.fill();
+            if (e.slowT > 0) {
+                ctx.strokeStyle = '#a9d9ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.r + 3, 0, 7);
+                ctx.stroke();
+            }
+            // hp bar
+            const w = e.r * 2,
+                hp = Math.max(0, e.hp / e.maxHp);
+            ctx.fillStyle = 'rgba(0,0,0,.6)';
+            ctx.fillRect(e.x - w / 2, e.y - e.r - 8, w, 4);
+            ctx.fillStyle = hp > .5 ? '#7dffb0' : hp > .25 ? '#ffe066' : '#ff5c7a';
+            ctx.fillRect(e.x - w / 2, e.y - e.r - 8, w * hp, 4);
+        }
+
+        function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        /* ---------- Battle loop ---------- */
+        function loop(ts) {
+            if (!B.running) return;
+            requestAnimationFrame(loop);
+            let dt = ts - B.last;
+            B.last = ts;
+            if (dt > 60) dt = 60;
+            if (!B.paused) { dt *= B.speed;
+                update(dt); }
+            draw();
+        }
+
+        function update(dt) {
+            // spawning
+            if (B.spawning) {
+                B.spawnTimer -= dt;
+                if (B.spawnQueue.length && B.spawnTimer <= 0) {
+                    const s = B.spawnQueue.shift();
+                    spawnEnemy(s.def);
+                    B.spawnTimer = (B.spawnQueue[0] ? B.spawnQueue[0].delay : 0);
+                }
+                if (!B.spawnQueue.length) B.spawning = false;
+            }
+            for (const e of B.enemies)
+                if (!e.dead) moveEnemy(e, dt);
+            B.enemies = B.enemies.filter(e => !e.dead);
+            fireTowers(dt);
+            updateBullets(dt);
+            updateParticles(dt);
+            // wave complete
+            if (!B.spawning && B.enemies.length === 0 && !B.betweenWaves && B.running) {
+                B.betweenWaves = true;
+                if (B.wave >= B.waveMax) { endBattle(true); } else {
+                    B.gold += 20 + B.wave * 5;
+                    toast('Волна пройдена! +' + (20 + B.wave * 5) + ' 💰');
+                    Sound.gold();
+                    refreshHud();
+                    document.getElementById('btnStart').style.display = 'inline-block';
+                }
+            }
+        }
+
+        /* ---------- Wave control ---------- */
+        function callWave() {
+            if (B.spawning || !B.betweenWaves) return;
+            B.wave++;
+            B.betweenWaves = false;
+            B.spawnQueue = buildWave(B.wave);
+            B.spawning = true;
+            B.spawnTimer = 200;
+            Sound.wave();
+            document.getElementById('btnStart').style.display = 'none';
+            refreshHud();
+        }
+
+        /* ---------- Battle start/end ---------- */
+        function initBattle(map, test) {
+            B.map = map;
+            B.cellType = map.grid.map(row => row.slice());
+            B.path = map.path.slice();
+            B.testMode = !!test;
+            fitBoard();
+            buildWaypoints();
+            B.towers = [];
+            B.enemies = [];
+            B.bullets = [];
+            B.particles = [];
+            B.waveMax = map.waves || 10;
+            B.wave = 0;
+            B.betweenWaves = true;
+            B.lives = 20 + (S.upgrades.startLives * 3);
+            // ★★★ СТАРТОВОЕ ЗОЛОТО ТЕПЕРЬ 180 ★★★
+            B.gold = 180 + (S.upgrades.startGold * 40) + (B.prebattleGold || 0);
+            B.reward = map.reward || 100;
+            B.speed = 1;
+            B.paused = false;
+            B.running = true;
+            B.selTower = null;
+            hideOverlay();
+            refreshHud();
+            buildTowerBar();
+            document.getElementById('btnStart').style.display = 'inline-block';
+            document.getElementById('hWaveMax').textContent = B.waveMax;
+            B.last = performance.now();
+            requestAnimationFrame(loop);
+        }
+
+        function endBattle(win) {
+            B.running = false;
+            if (win) {
+                Sound.win();
+                const mapIdx = B.currentMapIndex;
+                let reward = B.reward,
+                    first = false;
+                const key = String(mapIdx);
+                if (!S.bestWave[key] || B.waveMax > S.bestWave[key]) { S.bestWave[key] = B.waveMax; }
+                if (!B.testMode && mapIdx === S.unlockedMaps - 1 && S.unlockedMaps < BUILTIN.length) { S.unlockedMaps++;
+                    first = true; }
+                addGold(reward);
+                addXp(40 + B.waveMax * 6);
+                showOverlay('🏆 Победа!', 'Награда: +' + reward + ' 💰, опыт +' + (40 + B.waveMax * 6) + (first ?
+                    '  ·  Открыта новая карта!' : ''),
+                    [{ t: 'Ещё раз', f: () => initBattle(B.map, B.testMode) }, { t: 'В меню', f: () => quitBattle() }]
+                    );
+                if (YA.ready) { try { YA.sdk.adv.showFullscreenAdv({ callbacks: {} }); } catch (e) {} }
+            } else {
+                Sound.lose();
+                addGold(Math.round(B.wave * 8));
+                addXp(B.wave * 4);
+                showOverlay('💀 Ядро разрушено', 'Ты дошёл до волны ' + B.wave + '. Награда: +' + Math.round(B.wave * 8) +
+                    ' 💰',
+                    [{ t: 'Заново', f: () => initBattle(B.map, B.testMode) }, { t: 'В меню', f: () => quitBattle() }]
+                    );
+            }
+        }
+
+        function quitBattle() { B.running = false;
+            hideOverlay();
+            document.getElementById('gameWrap').classList.remove('active');
+            Game.show('menu'); }
+
+        /* ---------- Overlay ---------- */
+        function showOverlay(title, text, btns) {
+            const o = document.getElementById('ovl');
+            document.getElementById('ovlTitle').textContent = title;
+            document.getElementById('ovlText').textContent = text;
+            const bb = document.getElementById('ovlBtns');
+            bb.innerHTML = '';
+            (btns || []).forEach(b => {
+                const el = document.createElement('button');
+                el.className = 'btn';
+                el.textContent = b.t;
+                el.onclick = b.f;
+                bb.appendChild(el);
+            });
+            o.classList.add('show');
+        }
+
+        function hideOverlay() { document.getElementById('ovl').classList.remove('show'); }
+
+        /* ---------- HUD ---------- */
+        function refreshHud() {
+            document.getElementById('hLives').textContent = Math.max(0, B.lives);
+            document.getElementById('hGold').textContent = B.gold;
+            document.getElementById('hWave').textContent = B.wave;
+            document.getElementById('hSpeed').textContent = B.speed;
+        }
+
+        function buildTowerBar() {
+            const bar = document.getElementById('towerBar');
+            bar.innerHTML = '';
+            TOWER_ORDER.forEach(key => {
+                const d = TOWERS[key];
+                const el = document.createElement('div');
+                el.className = 'tw';
+                el.dataset.key = key;
+                el.innerHTML =
+                    '<canvas class="ic" width="44" height="44"></canvas><div class="nm">' + d.name +
+                    '</div><div class="cost">' + d.cost + ' 💰</div>';
+                el.onclick = () => {
+                    B.selTower = (B.selTower === key ? null : key);
+                    document.querySelectorAll('.tw').forEach(x => x.classList.remove('sel'));
+                    if (B.selTower === key) el.classList.add('sel');
+                    Sound.beep(600, .05);
+                };
+                bar.appendChild(el);
+                // icon
+                const ic = el.querySelector('canvas'),
+                    ix = ic.getContext('2d');
+                ix.fillStyle = d.bColor;
+                ix.beginPath();
+                ix.arc(22, 26, 12, 0, 7);
+                ix.fill();
+                ix.fillStyle = d.color;
+                ix.fillRect(20, 10, 16, 10);
+                ix.beginPath();
+                ix.arc(28, 20, 9, 0, 7);
+                ix.fill();
+            });
+        }
+
+        /* ---------- Input ---------- */
+        function boardXY(evt) {
+            const rect = cv.getBoundingClientRect();
+            const p = evt.touches ? evt.touches[0] : evt;
+            return { x: (p.clientX - rect.left) * (cv.width / rect.width), y: (p.clientY - rect.top) * (cv.height / rect
+                    .height) };
+        }
+
+        function onBoardMove(evt) {
+            const { x, y } = boardXY(evt);
+            B.hover.c = Math.floor(x / TILE);
+            B.hover.r = Math.floor(y / TILE);
+        }
+
+        function onBoardClick(evt) {
+            evt.preventDefault();
+            Sound.init();
+            const { x, y } = boardXY(evt);
+            const c = Math.floor(x / TILE),
+                r = Math.floor(y / TILE);
+            if (c < 0 || r < 0 || c >= COLS || r >= ROWS) return;
+            const t = B.towers.find(t => t.c === c && t.r === r);
+            if (t) { openTowerMenu(t); return; }
+            placeTower(c, r);
+        }
+
+        let towerMenuEl = null;
+
+        function openTowerMenu(t) {
+            closeTowerMenu();
+            const upCost = Math.round(t.invested * 0.8),
+                sell = Math.round(t.invested * 0.6);
+            const el = document.createElement('div');
+            el.className = 'tower-menu';
+            el.innerHTML = `
+            <div class="title">${t.def.name} · ур.${t.lvl}</div>
+            <div class="stats">Урон ${Math.round(towerDmg(t))} · Дальность ${Math.round(towerRange(t))}</div>
+            <div class="row">
+              <button class="btn small">⬆ Улучшить (${upCost})</button>
+              <button class="btn small alt">💰 Продать (+${sell})</button>
+              <button class="btn small ghost">✕</button>
+            </div>
+          `;
+            towerMenuEl = el;
+            const btns = el.querySelectorAll('button');
+            btns[0].onclick = () => { upgradeTower(t);
+                closeTowerMenu(); };
+            btns[1].onclick = () => { sellTower(t);
+                closeTowerMenu(); };
+            btns[2].onclick = closeTowerMenu;
+            document.body.appendChild(el);
+        }
+
+        function closeTowerMenu() {
+            if (towerMenuEl) { towerMenuEl.remove();
+                towerMenuEl = null; }
+        }
+
+        /* ============================================================
+           MAP EDITOR
+           ============================================================ */
+        const ED = { grid: null, paint: 1, painting: false, tile: 44 };
+
+        function initEditor() {
+            ED.grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+            const edcv = document.getElementById('edcv');
+            const container = document.getElementById('editor').querySelector('.editor-board');
+            const w = Math.min(container.clientWidth || 720, window.innerWidth - 48);
+            ED.tile = Math.max(24, Math.floor(w / COLS));
+            edcv.width = ED.tile * COLS;
+            edcv.height = ED.tile * ROWS;
+            drawEditor();
+            buildPalette();
+        }
+
+        function buildPalette() {
+            const pal = document.getElementById('edPalette');
+            pal.innerHTML = '';
+            const items = [
+                { v: 1, t: 'Дорога', c: '#c9a76a' },
+                { v: 0, t: 'Земля', c: '#2b6b3f' },
+                { v: 2, t: 'Старт', c: '#4de1c1' },
+                { v: 3, t: 'База', c: '#ff5c7a' }
+            ];
+            items.forEach(it => {
+                const s = document.createElement('button');
+                s.className = 'swatch' + (ED.paint === it.v ? ' sel' : '');
+                s.textContent = it.t;
+                s.style.background = it.c;
+                s.style.color = '#08111f';
+                s.onclick = () => { ED.paint = it.v;
+                    buildPalette(); };
+                pal.appendChild(s);
+            });
+        }
+
+        function drawEditor() {
+            const c2 = document.getElementById('edcv').getContext('2d'),
+                t = ED.tile;
+            for (let r = 0; r < ROWS; r++)
+                for (let col = 0; col < COLS; col++) {
+                    const v = ED.grid[r][col];
+                    c2.fillStyle = (v === 1) ? '#c9a76a' : (v === 2) ? '#4de1c1' : (v === 3) ? '#ff5c7a' : ((col + r) % 2 ?
+                        '#245c37' : '#2b6b3f');
+                    c2.fillRect(col * t, r * t, t, t);
+                    c2.strokeStyle = 'rgba(0,0,0,.12)';
+                    c2.strokeRect(col * t, r * t, t, t);
+                    if (v === 2) {
+                        c2.fillStyle = '#08111f';
+                        c2.font = 'bold ' + (t * 0.32) + 'px Inter, sans-serif';
+                        c2.textAlign = 'center';
+                        c2.textBaseline = 'middle';
+                        c2.fillText('S', col * t + t / 2, r * t + t / 2);
+                    }
+                    if (v === 3) {
+                        c2.fillStyle = '#fff';
+                        c2.font = 'bold ' + (t * 0.32) + 'px Inter, sans-serif';
+                        c2.textAlign = 'center';
+                        c2.textBaseline = 'middle';
+                        c2.fillText('B', col * t + t / 2, r * t + t / 2);
+                    }
+                }
+        }
+
+        function edXY(evt) {
+            const rect = document.getElementById('edcv').getBoundingClientRect();
+            const p = evt.touches ? evt.touches[0] : evt;
+            const cv2 = document.getElementById('edcv');
+            return {
+                c: Math.floor((p.clientX - rect.left) * (cv2.width / rect.width) / ED.tile),
+                r: Math.floor((p.clientY - rect.top) * (cv2.height / rect.height) / ED.tile)
+            };
+        }
+
+        function edPaint(evt) {
+            const { c, r } = edXY(evt);
+            if (c < 0 || r < 0 || c >= COLS || r >= ROWS) return;
+            if (ED.paint === 2 || ED.paint === 3) {
+                for (let rr = 0; rr < ROWS; rr++)
+                    for (let cc = 0; cc < COLS; cc++)
+                        if (ED.grid[rr][cc] === ED.paint) ED.grid[rr][cc] = 1;
+            }
+            ED.grid[r][c] = ED.paint;
+            drawEditor();
+        }
+
+        function editorGridToMap(name) {
+            let start = null,
+                base = null;
+            for (let r = 0; r < ROWS; r++)
+                for (let c = 0; c < COLS; c++) {
+                    if (ED.grid[r][c] === 2) start = [c, r];
+                    if (ED.grid[r][c] === 3) base = [c, r];
+                }
+            if (!start || !base) return { err: 'Нужны СТАРТ и БАЗА' };
+            const key = (c, r) => c + ',' + r;
+            const walk = (c, r) => ED.grid[r] && ED.grid[r][c] >= 1;
+            const q = [start],
+                prev = {};
+            prev[key(...start)] = null;
+            let found = false;
+            while (q.length) {
+                const [c, r] = q.shift();
+                if (c === base[0] && r === base[1]) { found = true; break; }
+                [
+                    [1, 0],
+                    [-1, 0],
+                    [0, 1],
+                    [0, -1]
+                ].forEach(([dc, dr]) => {
+                    const nc = c + dc,
+                        nr = r + dr;
+                    if (nc < 0 || nr < 0 || nc >= COLS || nr >= ROWS) return;
+                    if (!walk(nc, nr)) return;
+                    if (key(nc, nr) in prev) return;
+                    prev[key(nc, nr)] = [c, r];
+                    q.push([nc, nr]);
+                });
+            }
+            if (!found) return { err: 'Старт и база не соединены дорогой' };
+            const path = [];
+            let cur = base;
+            while (cur) { path.unshift(cur);
+                cur = prev[key(...cur)]; }
+            const grid = ED.grid.map(row => row.slice());
+            return { map: { name: name || 'Моя карта', theme: 'grass', grid, path, waves: 10, reward: 150,
+                custom: true } };
+        }
+
+        /* ============================================================
+           GAME CONTROLLER
+           ============================================================ */
+        const Game = {
+            show(id) {
+                closeTowerMenu();
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('gameWrap').classList.remove('active');
+                if (id === 'game') { document.getElementById('gameWrap').classList.add('active'); } else document
+                    .getElementById(id).classList.add('active');
+                if (id === 'menu') refreshMenu();
+                if (id === 'editor') setTimeout(initEditor, 50);
+            },
+
+            goLevels() { this.show('levels');
+                this.renderLevels(); },
+            goShop() { this.show('shop');
+                this.renderShop(); },
+            goEditor() { this.show('editor'); },
+
+            renderLevels() {
+                const list = document.getElementById('levelList');
+                list.innerHTML = '';
+                const maps = allMaps();
+                maps.forEach((m, i) => {
+                    const locked = (i < BUILTIN.length) && (i >= S.unlockedMaps);
+                    const el = document.createElement('div');
+                    el.className = 'levelItem' + (locked ? ' locked' : '');
+                    const best = S.bestWave[String(i)] || 0;
+                    el.innerHTML = `
+                <div class="name">${i+1}. ${m.name}</div>
+                <div class="meta">${m.custom ? '🗺️ Своя карта' : '🌿 '+m.theme} · ${m.waves||10} волн</div>
+                <div style="margin-top:6px; display:flex; gap:4px; flex-wrap:wrap; justify-content:center;">
+                  ${best ? '<span class="badge badge-cyan">🏆 '+best+'</span>' : ''}
+                  ${locked ? '<span class="badge">🔒 Закрыто</span>' : '<span class="badge badge-gold">▶ Играть</span>'}
+                </div>
+              `;
+                    if (!locked) el.onclick = () => { B.currentMapIndex = i;
+                        this.goPrebattle(m, i); };
+                    list.appendChild(el);
+                });
+            },
+
+            goPrebattle(map, idx) {
+                B.pendingMap = map;
+                B.currentMapIndex = idx;
+                B.prebattleGold = 0;
+                B.pbBought = {};
+                this.show('prebattle');
+                document.getElementById('pbTitle').textContent = 'Подготовка · ' + map.name;
+                const opts = [
+                    { id: 'gold', name: '+150 стартового золота', cost: 80 },
+                    { id: 'lives', name: '+8 к прочности ядра', cost: 70 },
+                    { id: 'rush', name: 'Убыстрение x2 доступно', cost: 40 },
+                ];
+                const list = document.getElementById('pbList');
+                list.innerHTML = '';
+                opts.forEach(o => {
+                    const row = document.createElement('div');
+                    row.className = 'shopRow';
+                    row.innerHTML =
+                        `<div class="info"><div class="title">${o.name}</div><div class="desc">Цена: ${o.cost} 💰</div></div>`;
+                    const b = document.createElement('button');
+                    b.className = 'btn small';
+                    b.textContent = 'Купить';
+                    b.onclick = () => {
+                        if (B.pbBought[o.id]) { toast('Уже куплено'); return; }
+                        if (S.gold < o.cost) { toast('Мало золота'); return; }
+                        S.gold -= o.cost;
+                        B.pbBought[o.id] = true;
+                        saveState();
+                        if (o.id === 'gold') B.prebattleGold += 150;
+                        if (o.id === 'lives') S._pbLives = 8;
+                        b.textContent = '✓ Куплено';
+                        b.disabled = true;
+                        Sound.gold();
+                        document.getElementById('pbGold').textContent = S.gold;
+                    };
+                    row.appendChild(b);
+                    list.appendChild(row);
+                });
+                document.getElementById('pbGold').textContent = S.gold;
+            },
+
+            startBattle() {
+                this.show('game');
+                initBattle(B.pendingMap, false);
+                if (S._pbLives) { B.lives += S._pbLives;
+                    S._pbLives = 0;
+                    refreshHud(); }
+            },
+
+            renderShop() {
+                document.getElementById('sGold').textContent = S.gold;
+                const list = document.getElementById('shopList');
+                list.innerHTML = '';
+                META.forEach(u => {
+                    const lvl = S.upgrades[u.key] || 0,
+                        maxed = lvl >= u.max,
+                        cost = u.cost(lvl);
+                    const row = document.createElement('div');
+                    row.className = 'shopRow';
+                    row.innerHTML = `
+                <div class="info">
+                  <div class="title">${u.name} <span class="badge">${lvl}/${u.max}</span></div>
+                  <div class="desc">${u.desc} · сейчас ${u.val(lvl)}</div>
+                </div>
+              `;
+                    const b = document.createElement('button');
+                    b.className = 'btn small' + (maxed ? ' ghost' : '');
+                    b.textContent = maxed ? 'МАКС' : ('Купить ' + cost + ' 💰');
+                    b.disabled = maxed;
+                    b.onclick = () => {
+                        if (S.gold < cost) { toast('Мало золота');
+                            Sound.hit(); return; }
+                        S.gold -= cost;
+                        S.upgrades[u.key]++;
+                        saveState();
+                        Sound.gold();
+                        this.renderShop();
+                        refreshMenu();
+                    };
+                    row.appendChild(b);
+                    list.appendChild(row);
+                });
+            },
+
+            callWave() { Sound.init();
+                callWave(); },
+            toggleSpeed() { B.speed = B.speed === 1 ? 2 : (B.speed === 2 ? 4 : 1);
+                refreshHud(); },
+            pauseToggle() {
+                B.paused = !B.paused;
+                if (B.paused) {
+                    showOverlay('⏸ Пауза', 'Игра приостановлена', [{ t: 'Продолжить', f: () => { hideOverlay();
+                            B.paused = false;
+                            B.last = performance.now();
+                            requestAnimationFrame(loop); } }]);
+                } else { hideOverlay();
+                    B.last = performance.now();
+                    requestAnimationFrame(loop); }
+            },
+            quitBattle() { quitBattle(); },
+            toggleSound() {
+                Sound.on = !Sound.on;
+                Sound.init();
+                document.getElementById('soundToggle').textContent = Sound.on ? '🔊 Звук: вкл' : '🔇 Звук: выкл';
+            },
+            hardReset() {
+                if (confirm('Сбросить весь прогресс?')) { S = defaultState();
+                    saveState();
+                    refreshMenu();
+                    toast('Прогресс сброшен'); }
+            },
+
+            editorTest() {
+                const r = editorGridToMap('Тест');
+                if (r.err) { toast(r.err); return; }
+                B.currentMapIndex = -1;
+                this.show('game');
+                initBattle(r.map, true);
+            },
+            editorSave() {
+                const name = prompt('Название карты:', 'Моя карта ' + (S.customMaps.length + 1));
+                if (name === null) return;
+                const r = editorGridToMap(name);
+                if (r.err) { toast(r.err); return; }
+                S.customMaps.push(r.map);
+                saveState();
+                toast('Карта сохранена!');
+            },
+            editorClear() { initEditor(); }
+        };
+
+        /* ---------- Menu refresh ---------- */
+        function refreshMenu() {
+            document.getElementById('mPlayerLvl').textContent = S.playerLvl;
+            document.getElementById('mXp').textContent = S.xp;
+            document.getElementById('mXpNext').textContent = xpForLevel(S.playerLvl);
+            document.getElementById('mXpBar').style.width = Math.min(100, (S.xp / xpForLevel(S.playerLvl)) * 100) + '%';
+            document.getElementById('mGold').textContent = S.gold;
+            document.getElementById('mMaps').textContent = S.unlockedMaps + S.customMaps.length;
+            const sg = document.getElementById('sGold');
+            if (sg) sg.textContent = S.gold;
+        }
+
+        /* ---------- Toast ---------- */
+        let toastT;
+
+        function toast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(toastT);
+            toastT = setTimeout(() => el.classList.remove('show'), 2000);
+        }
+
+        /* ---------- Boot ---------- */
+        window.addEventListener('load', () => {
+            cv = document.getElementById('cv');
+            ctx = cv.getContext('2d');
+            fitBoard();
+            loadState();
+            refreshMenu();
+
+            // board input
+            cv.addEventListener('mousemove', onBoardMove);
+            cv.addEventListener('click', onBoardClick);
+            cv.addEventListener('touchstart', e => { onBoardMove(e);
+                onBoardClick(e); }, { passive: false });
+            cv.addEventListener('touchmove', e => { e.preventDefault();
+                onBoardMove(e); }, { passive: false });
+
+            // editor input
+            const edcv = document.getElementById('edcv');
+            edcv.addEventListener('mousedown', e => { ED.painting = true;
+                edPaint(e); });
+            edcv.addEventListener('mousemove', e => { if (ED.painting) edPaint(e); });
+            window.addEventListener('mouseup', () => ED.painting = false);
+            edcv.addEventListener('touchstart', e => { e.preventDefault();
+                ED.painting = true;
+                edPaint(e); }, { passive: false });
+            edcv.addEventListener('touchmove', e => { e.preventDefault();
+                edPaint(e); }, { passive: false });
+            window.addEventListener('touchend', () => ED.painting = false);
+
+            window.addEventListener('resize', () => {
+                if (document.getElementById('gameWrap').classList.contains('active') && B.map) {
+                    fitBoard();
+                    B.towers.forEach(t => { t.x = t.c * TILE + TILE / 2;
+                        t.y = t.r * TILE + TILE / 2; });
+                    buildWaypoints();
+                }
+                if (document.getElementById('editor').classList.contains('active')) {
+                    initEditor();
+                }
+            });
+
+            // first gesture inits audio
+            window.addEventListener('pointerdown', () => Sound.init(), { once: true });
+
+            // init editor palette on show
+            const observer = new MutationObserver(() => {
+                if (document.getElementById('editor').classList.contains('active')) {
+                    initEditor();
+                }
+            });
+            observer.observe(document.getElementById('editor'), { attributes: true, attributeFilter: ['class'] });
+        });
+    </script>
+</body>
+</html>
